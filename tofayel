@@ -1,0 +1,118 @@
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+
+const conversations = [
+  // Existing ones remain
+  { arabic: "السلام عليكم", bangla: "তোমার উপর শান্তি বর্ষিত হোক (Hello)", pronunciation: "As-salamu 'alaykum" },
+  { arabic: "ما اسمك؟", bangla: "তোমার নাম কী?", pronunciation: "Ma ismuka?" },
+  { arabic: "أنا اسمي توفায়يل", bangla: "আমার নাম তোফায়েল", pronunciation: "Ana ismi Tofayel" },
+  { arabic: "كيف حالك؟", bangla: "তুমি কেমন আছো?", pronunciation: "Kayfa haluk?" },
+
+  // Daily Life section
+  { arabic: "أين ذهبت؟", bangla: "তুমি কোথায় গিয়েছিলে?", pronunciation: "Ayna dhahabta?" },
+  { arabic: "ذهبت إلى السوق", bangla: "আমি বাজারে গিয়েছিলাম", pronunciation: "Dhahabtu ila al-suq" },
+  { arabic: "ماذا اشتريت؟", bangla: "তুমি কী কিনেছো?", pronunciation: "Madha ishtarayta?" },
+  { arabic: "اشتريت الخضروات", bangla: "আমি সবজি কিনেছি", pronunciation: "Ishtaraytu al-khudrawat" },
+  { arabic: "هل أكلت؟", bangla: "তুমি কি খেয়েছো?", pronunciation: "Hal akalta?" },
+  { arabic: "نعم، أكلت قبل قليل", bangla: "হ্যাঁ, আমি কিছুক্ষণ আগে খেয়েছি", pronunciation: "Na'am, akaltu qabla qalil" },
+  { arabic: "متى ستنام؟", bangla: "তুমি কখন ঘুমাবে?", pronunciation: "Mata satanam?" },
+  { arabic: "سأنام في الساعة العاشرة", bangla: "আমি রাত দশটায় ঘুমাবো", pronunciation: "Sanam fi al-sa'ah al-'ashirah" },
+  { arabic: "هل نظفت غرفتك؟", bangla: "তুমি কি তোমার ঘর পরিষ্কার করেছো?", pronunciation: "Hal nazzafta ghurfatak?" },
+  { arabic: "نعم، نظفتها اليوم", bangla: "হ্যাঁ, আমি আজ ঘর পরিষ্কার করেছি", pronunciation: "Na'am, nazzafthuha al-yawm" },
+  { arabic: "أين كتابي؟", bangla: "আমার বই কোথায়?", pronunciation: "Ayna kitabi?" },
+  { arabic: "هو على الطاولة", bangla: "এটি টেবিলের উপর আছে", pronunciation: "Huwa 'ala at-tawilah" },
+  { arabic: "هل جهزت حقيبتك؟", bangla: "তুমি কি তোমার ব্যাগ গোছাও?", pronunciation: "Hal jahhazta haqibatak?" },
+  { arabic: "نعم، جهزتها", bangla: "হ্যাঁ, আমি গোছাইছি", pronunciation: "Na'am, jahhaztuha" },
+  { arabic: "لنذهب إلى المدرسة", bangla: "চলো স্কুলে যাই", pronunciation: "Linadhhab ila al-madrasah" },
+  { arabic: "افتح الباب من فضلك", bangla: "দয়া করে দরজা খুলো", pronunciation: "Iftah al-bab min fadlik" },
+  { arabic: "أغلق النافذة", bangla: "জানালাটা বন্ধ করো", pronunciation: "Aghliq al-nafidha" },
+  { arabic: "اغسل يديك قبل الأكل", bangla: "খাওয়ার আগে তোমার হাত ধুয়ে নাও", pronunciation: "Ighsil yadayka qabl al-akl" },
+
+  // Office section
+  { arabic: "أين المدير؟", bangla: "ম্যানেজার কোথায়?", pronunciation: "Ayna al-mudir?" },
+  { arabic: "هو في الاجتماع", bangla: "তিনি মিটিংয়ে আছেন", pronunciation: "Huwa fi al-ijtima'" },
+  { arabic: "متى سينتهي الاجتماع؟", bangla: "মিটিং কখন শেষ হবে?", pronunciation: "Mata sayantahi al-ijtima'?" },
+  { arabic: "هل أرسلت البريد الإلكتروني؟", bangla: "তুমি কি ইমেইল পাঠিয়েছো?", pronunciation: "Hal arsalt al-barid al-elektruni?" },
+  { arabic: "نعم، أرسلته الآن", bangla: "হ্যাঁ, আমি এখনই পাঠালাম", pronunciation: "Na'am, arsaltuhu al-an" },
+  { arabic: "هل حضرت التقرير؟", bangla: "তুমি কি রিপোর্ট প্রস্তুত করেছো?", pronunciation: "Hal hadhart al-taqrir?" },
+  { arabic: "نعم، هو جاهز", bangla: "হ্যাঁ, এটি প্রস্তুত", pronunciation: "Na'am, huwa jahiz" },
+
+  // Market section
+  { arabic: "كم سعر هذا؟", bangla: "এটার দাম কত?", pronunciation: "Kam si'r hadha?" },
+  { arabic: "هل لديك أرز؟", bangla: "তোমার কি চাল আছে?", pronunciation: "Hal ladayka aruzz?" },
+  { arabic: "نعم، لدينا أرز طازج", bangla: "হ্যাঁ, আমাদের টাটকা চাল আছে", pronunciation: "Na'am, ladayna aruzz tazij" },
+  { arabic: "أريد نصف كيلو من الطماطم", bangla: "আমি আধা কেজি টমেটো চাই", pronunciation: "Uridu nisf kilo min al-tamatim" },
+  { arabic: "هل تقبل البطاقة؟", bangla: "আপনারা কি কার্ড গ্রহণ করেন?", pronunciation: "Hal taqbal al-bitaqah?" },
+  { arabic: "نعم، نقبل الدفع بالبطاقة", bangla: "হ্যাঁ, আমরা কার্ডে পেমেন্ট নিই", pronunciation: "Na'am, naqbal al-daf' bil-bitaqah" },
+
+  // Travel section
+  { arabic: "أين المطار؟", bangla: "বিমানবন্দর কোথায়?", pronunciation: "Ayna al-matar?" },
+  { arabic: "أريد تذكرة إلى القاهرة", bangla: "আমি কায়রো যাওয়ার টিকিট চাই", pronunciation: "Uridu tadhkirah ila al-Qahirah" },
+  { arabic: "كم تستغرق الرحلة؟", bangla: "যাত্রা কতক্ষণ লাগবে?", pronunciation: "Kam tastaghriq al-rihlah?" },
+  { arabic: "هل هذه الحافلة تذهب إلى الفندق؟", bangla: "এই বাসটি কি হোটেলে যায়?", pronunciation: "Hal hadhihi al-hafilah tadhhab ila al-funduq?" },
+
+  // Friends & Family
+  { arabic: "هذا صديقي", bangla: "এটি আমার বন্ধু", pronunciation: "Hatha sadeeqi" },
+  { arabic: "هل لديك إخوة؟", bangla: "তোমার কি ভাইবোন আছে?", pronunciation: "Hal ladayka ikhwah?" },
+  { arabic: "نعم، لدي أخت وأخ", bangla: "হ্যাঁ, আমার এক বোন ও এক ভাই আছে", pronunciation: "Na'am, ladayya ukht wa akh" },
+  { arabic: "أين والدك؟", bangla: "তোমার বাবা কোথায়?", pronunciation: "Ayna waliduk?" },
+  { arabic: "هو في العمل", bangla: "তিনি কাজে আছেন", pronunciation: "Huwa fi al-'amal" },
+
+  // Religious phrases
+  { arabic: "الحمد لله", bangla: "আলহামদুলিল্লাহ (সব প্রশংসা আল্লাহর জন্য)", pronunciation: "Alhamdulillah" },
+  { arabic: "إن شاء الله", bangla: "ইনশাআল্লাহ (আল্লাহ চাইলে)", pronunciation: "Insha'Allah" },
+  { arabic: "ما شاء الله", bangla: "মাশাআল্লাহ (আল্লাহ যা চান)", pronunciation: "Masha'Allah" },
+  { arabic: "جزاك الله خيرًا", bangla: "আল্লাহ আপনাকে উত্তম প্রতিদান দিন", pronunciation: "Jazak Allahu Khayran" }
+];
+
+export default function TofayelApp() {
+  const [index, setIndex] = useState(0);
+
+  const nextConversation = () => {
+    setIndex((index + 1) % conversations.length);
+  };
+
+  const speakArabic = () => {
+    const utterance = new SpeechSynthesisUtterance(conversations[index].arabic);
+    const voices = window.speechSynthesis.getVoices();
+    const arabicVoice = voices.find(v => v.lang.startsWith('ar')) || voices[0];
+    utterance.voice = arabicVoice;
+    utterance.lang = arabicVoice.lang;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 to-green-200 p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-md w-full space-y-4"
+      >
+        <Card className="shadow-xl rounded-2xl">
+          <CardContent className="p-6 text-center space-y-4">
+            <h2 className="text-2xl font-bold text-green-700"> Tofayel</h2>
+            <p className="text-xl font-semibold text-gray-800">
+              {conversations[index].arabic}
+            </p>
+            <p className="text-base text-gray-600 italic">
+              {conversations[index].pronunciation}
+            </p>
+            <p className="text-base text-gray-600">
+              {conversations[index].bangla}
+            </p>
+            <div className="flex justify-center gap-4 mt-4">
+              <Button onClick={speakArabic} className="bg-blue-600 hover:bg-blue-700 text-white">
+                 শুনুন
+              </Button>
+              <Button onClick={nextConversation} className="bg-green-600 hover:bg-green-700 text-white">
+                পরের বাক্য
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </div>
+  );
+}
